@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #fdf6ec;
+  color: #2b2118;
+}
+
+.tap {
+  min-height: 3rem;
+}
