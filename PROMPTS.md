@@ -9,3 +9,6 @@ Workspace now open and trusted; retry reading BRIEF.md and build the entire app 
 
 ## Prompt 3 (real build kickoff, fresh chat after tool-proxy fix)
 Read BRIEF.md + PROMPTS.md, build everything: Vite+React+TS+Tailwind client-side app, conversational intake hi/en + voice, JSON rules engine with matched-rule reasons + "possible" schemes, results (benefit, docs, steps, official URL + last-verified), shareable WhatsApp result card, localStorage tracker, privacy-first, full scheme dataset. Autonomous until npm run build passes.
+
+## Prompt 4 (QA fixes after live testing)
+Fixed Rs 0 header bug (sum matched benefits), never render Rs 0 benefits, remove internal jargon from UI, cleaner disclaimer, natural-language answer parsing (daughter/land/income), engine recall tuning (PM-JAY, Ujjwala, NSP), monthly income conversion.

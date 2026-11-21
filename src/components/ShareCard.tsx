@@ -6,13 +6,26 @@ export interface ShareCardProps {
   totalRupees: number;
   lang: Lang;
   likelyCount: number;
+  hasExtraBenefits?: boolean;
 }
 
-export function ShareCard({ totalRupees, lang, likelyCount }: ShareCardProps) {
-  const amount = formatRupees(totalRupees);
-  const enText = `You may be missing up to ${amount}/year in government benefits.`;
-  const hiText = `आप सालाना up to ${amount} तक के सरकारी लाभ से चूक सकते हैं।`;
-  const shownText = lang === 'hi' ? hiText : enText;
+export function ShareCard({ totalRupees, lang, likelyCount, hasExtraBenefits = false }: ShareCardProps) {
+  const hasAmount = totalRupees > 0;
+  const amount = hasAmount ? formatRupees(totalRupees) : '';
+
+  const enMain = hasAmount
+    ? `You may be missing up to ${amount}/year in government benefits.`
+    : 'Check your eligibility for government benefits.';
+  const hiMain = hasAmount
+    ? `आप सालाना up to ${amount} तक के सरकारी लाभ से चूक सकते हैं।`
+    : 'सरकारी लाभ के लिए अपनी पात्रता जाँचें।';
+
+  const enExtra = 'plus guaranteed work and savings benefits';
+  const hiExtra = 'साथ में गारंटीड काम और बचत के लाभ';
+
+  const shownMain = lang === 'hi' ? hiMain : enMain;
+  const shownExtra = lang === 'hi' ? hiExtra : enExtra;
+  const shownText = hasExtraBenefits ? `${shownMain} ${shownExtra}` : shownMain;
 
   // Opens WhatsApp only from this click handler (user tap), never on mount.
   function shareOnWhatsApp(): void {
@@ -23,8 +36,10 @@ export function ShareCard({ totalRupees, lang, likelyCount }: ShareCardProps) {
 
   return (
     <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm">
-      <p className="text-lg font-semibold text-emerald-900">{enText}</p>
-      <p className="mt-1 text-base text-emerald-800">{hiText}</p>
+      <p className="text-lg font-semibold text-emerald-900">{enMain}</p>
+      {hasExtraBenefits && <p className="text-base font-medium text-emerald-900">{enExtra}</p>}
+      <p className="mt-1 text-base text-emerald-800">{hiMain}</p>
+      {hasExtraBenefits && <p className="text-sm text-emerald-800">{hiExtra}</p>}
       <p className="mt-3 text-xs text-slate-500">
         {lang === 'hi'
           ? `${likelyCount} संभावित रूप से पात्र योजनाओं पर आधारित। अनुमान है, गारंटी नहीं।`

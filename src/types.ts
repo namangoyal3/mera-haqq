@@ -29,6 +29,8 @@ export interface Profile {
   hasKisanCard?: boolean;
   isBelowPovertyCardHolder?: boolean;
   hasPuccaHouse?: boolean;
+  hasLpgConnection?: boolean;
+  hasSchoolChildren?: boolean;
   gender?: Gender;
 }
 

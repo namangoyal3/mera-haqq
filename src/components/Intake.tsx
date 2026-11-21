@@ -23,6 +23,7 @@ function withAnswer(answers: Profile, id: keyof Profile, value: Value | undefine
 }
 
 function parseAnswer(q: IntakeQuestion, text: string, lang: Lang): Value | null {
+  if (q.parse) return q.parse(text, lang);
   switch (q.kind) {
     case 'number':
       return parseNumber(text);
@@ -158,6 +159,12 @@ export default function Intake({ lang, onDone }: IntakeProps) {
       </div>
 
       <h2 className="text-2xl font-semibold leading-snug text-stone-900">{prompt}</h2>
+
+      {(lang === 'hi' ? current.hint_hi : current.hint_en) && (
+        <p className="-mt-3 text-sm text-stone-500">
+          {lang === 'hi' ? current.hint_hi : current.hint_en}
+        </p>
+      )}
 
       {retry && (
         <p role="alert" className="rounded-2xl bg-amber-100 p-3 text-base text-amber-900">

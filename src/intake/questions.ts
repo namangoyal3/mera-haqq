@@ -1,4 +1,5 @@
 import type { Profile } from '../types';
+import { parseAgeNumber, parseAnnualIncome, parseLandAcres } from './parse';
 
 export interface ChoiceOption {
   value: string | number | boolean;
@@ -11,8 +12,12 @@ export interface IntakeQuestion {
   kind: 'number' | 'choice' | 'boolean' | 'text';
   prompt_en: string;
   prompt_hi: string;
+  /** Optional small muted line shown under the prompt. */
+  hint_en?: string;
+  hint_hi?: string;
   options?: ChoiceOption[];
-  parse?: never;
+  /** Optional custom parser; when set, Intake uses it instead of the kind default. */
+  parse?: (text: string, lang: 'en' | 'hi') => Profile[keyof Profile] | null;
   /** Optional gate: question is only asked when this returns true for the answers so far. */
   when?: (answers: Profile) => boolean;
 }
@@ -47,6 +52,7 @@ export const QUESTIONS: IntakeQuestion[] = [
     kind: 'number',
     prompt_en: 'How old are you?',
     prompt_hi: 'आपकी उम्र कितनी है?',
+    parse: parseAgeNumber,
   },
   {
     id: 'gender',
@@ -73,6 +79,9 @@ export const QUESTIONS: IntakeQuestion[] = [
     kind: 'number',
     prompt_en: 'What is your family’s total income per year, in rupees? (for example 1,20,000 or 1.2 lakh)',
     prompt_hi: 'आपके परिवार की कुल सालाना आमदनी कितने रुपये है? (जैसे 1,20,000 या 1.2 लाख)',
+    hint_en: 'Yearly income in rupees. You can also say monthly, e.g. 8000 per month.',
+    hint_hi: 'सालाना आय रुपये में। महीने की आय भी बता सकते हैं, जैसे 8000 महीना।',
+    parse: parseAnnualIncome,
   },
   {
     id: 'familySize',
@@ -85,6 +94,7 @@ export const QUESTIONS: IntakeQuestion[] = [
     kind: 'number',
     prompt_en: 'How many acres of farmland do you own? (enter 0 if none)',
     prompt_hi: 'आपके पास कितने एकड़ खेती की ज़मीन है? (न हो तो 0 लिखें)',
+    parse: parseLandAcres,
   },
   {
     id: 'category',
@@ -110,6 +120,7 @@ export const QUESTIONS: IntakeQuestion[] = [
     kind: 'number',
     prompt_en: 'How old is your daughter?',
     prompt_hi: 'आपकी बेटी की उम्र कितनी है?',
+    parse: parseAgeNumber,
     when: (a) => a.hasGirlChild === true,
   },
   {
@@ -135,6 +146,18 @@ export const QUESTIONS: IntakeQuestion[] = [
     kind: 'boolean',
     prompt_en: 'Do you have a BPL (below poverty line) card?',
     prompt_hi: 'क्या आपके पास बीपीएल (गरीबी रेखा से नीचे) कार्ड है?',
+  },
+  {
+    id: 'hasLpgConnection',
+    kind: 'boolean',
+    prompt_en: 'Does your household have an LPG gas connection?',
+    prompt_hi: 'क्या आपके घर में LPG गैस कनेक्शन है?',
+  },
+  {
+    id: 'hasSchoolChildren',
+    kind: 'boolean',
+    prompt_en: 'Do you have a child in school (class 1 to 10)?',
+    prompt_hi: 'क्या आपके घर में कोई बच्चा स्कूल (कक्षा 1 से 10) में पढ़ता है?',
   },
   {
     id: 'hasKisanCard',

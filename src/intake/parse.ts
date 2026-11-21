@@ -62,6 +62,7 @@ const MULTIPLIERS: { match: RegExp; factor: number }[] = [
   { match: /crore|करोड़|करोड/, factor: 10_000_000 },
   { match: /lakh|lac|लाख/, factor: 100_000 },
   { match: /hazar|hazaar|thousand|हज़ार|हजार/, factor: 1_000 },
+  { match: /\d\s*k\b|\bk\b/, factor: 1_000 },
 ];
 
 /**
@@ -100,21 +101,23 @@ export function parseNumber(text: string): number | null {
   return null;
 }
 
-const YES_WORDS = ['yes', 'y', 'haan', 'han', 'ha', 'haa', 'ji', 'haan ji', 'हाँ', 'हां', 'हा', 'जी', 'हाँ जी', 'हां जी'];
-const NO_WORDS = ['no', 'n', 'nahi', 'nahin', 'na', 'nai', 'नहीं', 'नही', 'ना', 'नहीं जी'];
+const TRUE_TOKENS = ['yes', 'y', 'yeah', 'yep', 'haan', 'ha', 'han', 'ji', 'हाँ', 'हां'];
+const FALSE_TOKENS = ['no', 'n', 'nope', 'nahi', 'nahin', 'na', 'नहीं', 'नही'];
 
 /**
- * Parse a yes/no answer. Matches on the whole answer (after normalising), so
- * "haan" / "हाँ" → true, "nahi" / "नहीं" → false. Both English and Hindi word
- * lists are always accepted, so the UI language does not change the result.
+ * Parse a yes/no answer by its LEADING token, so "yes, one daughter aged 6"
+ * → true and "no, not yet" → false. Whole-word, case-insensitive. Returns
+ * null when the answer does not start with a yes/no token.
  */
 export function parseBoolean(text: string, _lang: Lang): boolean | null {
   const norm = normalize(text);
   if (norm === '') return null;
-  if (YES_WORDS.includes(norm)) return true;
-  if (NO_WORDS.includes(norm)) return false;
+  const first = norm.split(' ')[0];
+  if (TRUE_TOKENS.includes(first)) return true;
+  if (FALSE_TOKENS.includes(first)) return false;
   return null;
 }
+
 
 /**
  * Match a free-text answer to one of the options. Accepts the option's label
@@ -166,3 +169,69 @@ export function parseStateName(text: string): string {
     )
     .join(' ');
 }
+
+
+const LAND_ZERO_PHRASES = [
+  'no land',
+  'none',
+  'nil',
+  'zero',
+  'kuch nahi',
+  'kuch bhi nahi',
+  'koi nahi',
+  'nahi hai',
+  'no',
+  'nahi',
+  '0',
+];
+const LAND_ZERO_RE = new RegExp(`(^| )(${LAND_ZERO_PHRASES.join('|')})( |$)`);
+
+/**
+ * Parse land holding in acres. "none", "no land", "kuch nahi", "0" etc. → 0.
+ * A zero phrase only wins when no positive number is present, so "no, 3 acres"
+ * still returns 3.
+ */
+export function parseLandAcres(text: string): number | null {
+  const norm = normalize(text);
+  const n = parseNumber(text);
+  if (LAND_ZERO_RE.test(norm) && (n === null || n === 0)) return 0;
+  return n;
+}
+
+const ANNUAL_INCOME_MONTHLY_HINTS = [
+  'month',
+  'mahine',
+  'mahina',
+  'monthly',
+  'per month',
+  '/month',
+  'महीने',
+  'महीना',
+];
+
+/**
+ * Parse annual household income. If the answer is given per month, multiply
+ * by 12 ("8000 per month" → 96000).
+ */
+export function parseAnnualIncome(text: string): number | null {
+  const n = parseNumber(text);
+  if (n === null) return null;
+  const lower = text.toLowerCase();
+  if (ANNUAL_INCOME_MONTHLY_HINTS.some((h) => lower.includes(h))) return n * 12;
+  return n;
+}
+
+const AGE_LEAD_RE = /(?:aged|age|umar|उम्र|saal|years|yrs)\s*:?\s*(\d+)/;
+
+/**
+ * Parse an age in years. Prefers a number that follows "aged"/"age"/"umar"/
+ * "saal"/"years"/"yrs"; otherwise the first integer in the text.
+ */
+export function parseAgeNumber(text: string): number | null {
+  const norm = normalize(text);
+  const lead = norm.match(AGE_LEAD_RE);
+  if (lead) return Number(lead[1]);
+  const first = norm.match(/\d+/);
+  return first ? Number(first[0]) : null;
+}
+

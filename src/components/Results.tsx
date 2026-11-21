@@ -69,7 +69,9 @@ function SchemeCard({ result, lang, onTrack }: SchemeCardProps) {
       </header>
 
       <div>
-        <p className="text-base font-semibold text-emerald-800">{formatRupees(scheme.benefitAmountRupees)}</p>
+        {scheme.benefitAmountRupees > 0 && (
+          <p className="text-base font-semibold text-emerald-800">{formatRupees(scheme.benefitAmountRupees)}</p>
+        )}
         <p className="text-sm text-slate-700">{lang === 'hi' ? scheme.benefitDetail_hi : scheme.benefitDetail_en}</p>
       </div>
 
@@ -127,7 +129,7 @@ function SchemeCard({ result, lang, onTrack }: SchemeCardProps) {
           {t('Last verified: ', 'अंतिम जाँच: ')}
           {formatDate(scheme.lastVerified, lang)}
         </p>
-        {scheme.notes && <p className="text-slate-700">{scheme.notes}</p>}
+        {scheme.notes && !scheme.notes.includes('Dev note') && <p className="text-slate-700">{scheme.notes}</p>}
         {scheme.deadline && (
           <p className="font-medium text-amber-800">
             {t('Deadline: ', 'अंतिम तिथि: ')}
@@ -150,10 +152,18 @@ function SchemeCard({ result, lang, onTrack }: SchemeCardProps) {
 export function Results({ profile, lang, onTrack, onStartOver }: ResultsProps) {
   const results = useMemo(() => evaluateAll(profile, schemes), [profile]);
   const t = (en: string, hi: string): string => (lang === 'hi' ? hi : en);
+  const hasExtraBenefits = results.likely.some(
+    (r) => r.scheme.benefitType === 'in_kind' || !(r.scheme.benefitAmountRupees > 0),
+  );
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 p-4">
-      <ShareCard totalRupees={results.totalAnnualRupees} lang={lang} likelyCount={results.likely.length} />
+      <ShareCard
+        totalRupees={results.totalAnnualRupees}
+        lang={lang}
+        likelyCount={results.likely.length}
+        hasExtraBenefits={hasExtraBenefits}
+      />
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold text-slate-900">{t('Likely eligible', 'संभावित रूप से पात्र')}</h2>

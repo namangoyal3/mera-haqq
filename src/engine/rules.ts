@@ -107,13 +107,22 @@ export function evaluateScheme(profile: Profile, scheme: Scheme): SchemeEvaluati
   return { status, matchedRules, failedRules, missingFields };
 }
 
-/** Annual rupee value of a scheme for totals. Only cash-type benefits count. */
+/**
+ * Annual rupee value of a scheme for totals.
+ * Counts annual_cash as-is, pension_monthly x 12, and one_time as a single amount.
+ * Excludes in_kind, loan, subsidy, and schemes with no fixed amount.
+ */
 export function annualValueRupees(scheme: Scheme): number {
+  const amount = scheme.benefitAmountRupees;
+  if (!amount) return 0;
+
   switch (scheme.benefitType) {
     case 'annual_cash':
-      return scheme.benefitAmountRupees;
+      return amount;
     case 'pension_monthly':
-      return scheme.benefitAmountRupees * 12;
+      return amount * 12;
+    case 'one_time':
+      return amount;
     default:
       return 0;
   }
